@@ -3,7 +3,7 @@
     ~~~~~~~~~~~
 
     Downloads a random image from Wikiart's Hi-Res page
-    and sets it as the desktop background in MacOS.
+    and sets it as the desktop background in macOS.
 
 '''
 
@@ -202,8 +202,7 @@ def _clean_dls(limit):
     # check if limit exceeded
     if len(jpegs) > limit:
 
-        logger.info('JPEG file limit: %s', limit)
-        logger.info('# of JPEGs in %s: %s', DATA_DIR, len(jpegs))
+        logger.info('%s jpeg files in %s', len(jpegs), DATA_DIR)
         logger.info('Cleaning...')
 
         # sort by modification time, oldest to newest
@@ -213,8 +212,6 @@ def _clean_dls(limit):
             f = jpegs.pop(0)
             os.remove(f)
             logger.info('%s removed.', f)
-
-        logger.info('Cleaning complete.')
 
 
 def _run_appscript(script):
@@ -235,7 +232,6 @@ def _run_appscript(script):
 @click.command()
 @click.option(
     '--dest',
-    default=DATA_DIR,
     help='Download images to specified destination.'
 )
 @click.option(
@@ -251,9 +247,16 @@ def _run_appscript(script):
     help='Show debugging messages.'
 )
 def cli(dest, limit, debug):
-    '''Set desktop background in MacOS to random WikiArt image.'''
+    '''Set desktop background in macOS to random WikiArt image.'''
 
     config_logger(debug)
+
+    if debug:
+        print('Debug mode is on.')
+    if dest is None:
+        dest = DATA_DIR
+    else:
+        logger.info(f'Destination set to %s, dest')
 
     try:
         # Retrieve random hi-res image.
@@ -263,7 +266,10 @@ def cli(dest, limit, debug):
 
         # Clean out DL directory if limit reached.
         if limit != -1:
+            logger.info('Download limit set to %s.', limit)
             _clean_dls(limit)
+        else:
+            logger.info('No download limit set. Skipping cleaning.')
 
         # Set image as desktop background.
         script_setwall = '''
@@ -279,7 +285,7 @@ def cli(dest, limit, debug):
         sys.stdout.flush()
         time.sleep(1)
         print('done.')
-        time.sleep(0.5)
+        time.sleep(0.2)
 
     except Exception:
         logger.exception('Something went wrong.')
