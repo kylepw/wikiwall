@@ -1,7 +1,7 @@
 ========
 wikiwall
 ========
-*wikiwall* is a CLI that downloads a random image from Wikiart's Hi-Res page and sets it as your desktop background in MacOS.
+*wikiwall* is a CLI that downloads a random image from Wikiart's Hi-Res page and sets it as your desktop background in macOS.
 
 .. image:: https://github.com/kylepw/wikiwall/blob/master/example.gif
 	:align: center
@@ -18,7 +18,7 @@ Requirements
 
 
 Installation
------------- 
+------------
 ::
 
 	$ pip3 install wikiwall
@@ -32,20 +32,20 @@ If you want, set your wallpaper to change every night with launchd: ::
 
 
 Usage
------ 
+-----
 ::
 
 	$ wikiwall --help
 	Usage: wikiwall [OPTIONS]
 
-	  Set desktop background in MacOS to random WikiArt image.
+	  Set desktop background in macOS to random WikiArt image.
 
 	Options:
   	  --dest TEXT      Download images to specified destination.
   	  --limit INTEGER  Number of files to keep in download directory. Set to -1 for no limit. Default is 10.
   	  --debug          Show debugging messages.
   	  --help           Show this message and exit.
- 
+
 Todo
 ----
 - Add documentation to Sphinx.
