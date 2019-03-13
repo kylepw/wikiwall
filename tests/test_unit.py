@@ -196,7 +196,7 @@ class DownloadImgTest(unittest.TestCase):
         self.assertEqual(dirpath, self.mock_getcwd.return_value)
 
     @mock.patch('wikiwall.open', new_callable=mock.mock_open)
-    def test_correct_file_path_returned_based_on_url_passed_in(self,  mock_open):
+    def test_correct_file_path_returned_based_on_url_passed_in(self, mock_open):
         tempdir = tempfile.TemporaryDirectory()
 
         url = 'http://www.blah.com/jeezus.jpg'

@@ -256,7 +256,7 @@ def cli(dest, limit, debug):
     if dest is None:
         dest = DATA_DIR
     else:
-        logger.info(f'Destination set to %s, dest')
+        logger.info('Destination set to %s', dest)
 
     try:
         # Retrieve random hi-res image.
