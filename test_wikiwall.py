@@ -3,18 +3,16 @@ import os
 import os.path
 import requests
 from requests.exceptions import HTTPError, InvalidURL, MissingSchema
-import subprocess
 import tempfile
-import time
 import unittest
 import unittest.mock as mock
 import wikiwall
 from wikiwall import (
     _clean_dls,
-    _run_appscript, 
-    download_img, 
-    get_random, 
-    scrape_urls, 
+    _run_appscript,
+    download_img,
+    get_random,
+    scrape_urls,
 )
 
 
@@ -27,29 +25,28 @@ class GetRandomTest(unittest.TestCase):
         with self.assertRaises(TypeError):
             get_random()
 
-
     def test_non_iterable_argument(self):
         with self.assertRaises(TypeError):
             get_random(45)
 
-
     def test_returns_result_with_k_num_of_items(self):
         values, k = ['a', 'b', 'c', 'd', 'e', 'f'], 4
         self.assertEqual(len(get_random(values, k)), k)
-
 
     def test_item_returned_are_from_original_iterable(self):
         values, k = ['a', 3.45, 'jazz', (1, 2), ['z' 'g'], 'gah', 3], 4
         for val in get_random(values, k):
             self.assertIn(val, values)
 
-
     def test_for_warning_if_k_is_greater_than_size_of_iterable(self):
         values, k = ['a', 'b', 'c', 'd', 'e', 'f'], 10
 
         with mock.patch.object(LOGGER, 'warning') as mock_warning:
             get_random(values, k)
-        mock_warning.assert_called_with('Size of iterator (%s) is less than k (%s)', len(values), k)
+        mock_warning.assert_called_with(
+            'Size of iterator (%s) is less than k (%s)',
+            len(values), k
+        )
 
 
 class ScrapeUrlsTest(unittest.TestCase):
@@ -58,10 +55,8 @@ class ScrapeUrlsTest(unittest.TestCase):
         self.patcher_get = mock.patch('wikiwall.requests.get', autospec=True)
         self.mock_get = self.patcher_get.start()
 
-
     def tearDown(self):
         self.patcher_get.stop()
-
 
     def get_resp(
         self,
@@ -73,25 +68,24 @@ class ScrapeUrlsTest(unittest.TestCase):
         mock_resp = mock.Mock(spec=requests.models.Response)
         mock_resp.status_code = status_code
         mock_resp.content = content
-        
+
         # mock raise_for_status call w/optional error
         if raise_for_status:
-            mock_resp.raise_for_status = mock.Mock(side_effect=raise_for_status)
+            mock_resp.raise_for_status = mock.Mock(
+                side_effect=raise_for_status
+            )
 
         return mock_resp
-
 
     def test_missing_src_url(self):
         with self.assertRaises(TypeError):
             scrape_urls()
 
-
     def test_invalid_src_url(self):
-        self.mock_get.side_effect=MissingSchema
+        self.mock_get.side_effect = MissingSchema
 
         with self.assertRaises(MissingSchema):
             list(scrape_urls(456))
-
 
     def test_url_that_returns_404_error_raises_exception(self):
         self.mock_get.return_value = self.get_resp(raise_for_status=HTTPError)
@@ -99,28 +93,28 @@ class ScrapeUrlsTest(unittest.TestCase):
         with self.assertRaises(HTTPError):
             list(scrape_urls('http://www.google.com/admin'))
 
-
     def test_src_url_content_with_correct_class_and_img_urls(self):
         src = 'http://mockkkkkkkk.com'
-        src_content = b'<div class="artworks-by-dictionary">http://s.com/fake1.jpg http://s.com/fake2.jpg</div>'
-        
+        src_content = b'''
+            <div class="artworks-by-dictionary">http://s.com/fake1.jpg http://s.com/fake2.jpg</div>
+        '''
+
         mock_resp = self.get_resp(content=src_content)
         self.mock_get.return_value = mock_resp
 
         urls = scrape_urls(src)
-        
-        self.assertEqual(sum(1 for _ in urls), 2)
 
+        self.assertEqual(sum(1 for _ in urls), 2)
 
     def test_src_url_content_without_correct_class_and_img_urls(self):
         src = 'http://sitethatdoesnotexist.com'
         src_content = b'<html></html>'
-        
+
         mock_resp = self.get_resp(content=src_content)
         self.mock_get.return_value = mock_resp
 
         urls = scrape_urls(src)
-        
+
         self.assertEqual(sum(1 for _ in urls), 0)
 
 
@@ -135,7 +129,10 @@ class DownloadImgTest(unittest.TestCase):
         )
         self.mock_getcwd = self.patcher_getcwd.start()
 
-        self.patcher_makedirs = mock.patch('wikiwall.os.makedirs', autospec=True)
+        self.patcher_makedirs = mock.patch(
+            'wikiwall.os.makedirs',
+            autospec=True,
+        )
         self.mock_makedirs = self.patcher_makedirs.start()
 
         # Suppress print and tqdm output
@@ -144,7 +141,6 @@ class DownloadImgTest(unittest.TestCase):
         self.patcher_tqdm = mock.patch('wikiwall.tqdm')
         self.mock_tqdm = self.patcher_tqdm.start()
 
-
     def tearDown(self):
         self.patcher_get.stop()
         self.patcher_getcwd.stop()
@@ -152,20 +148,17 @@ class DownloadImgTest(unittest.TestCase):
         self.patcher_print.stop()
         self.patcher_tqdm.stop()
 
-  
     def test_create_path_without_correct_permissions(self):
         self.mock_makedirs.side_effect = PermissionError
 
         with self.assertRaises(PermissionError):
             download_img('http://', dest='/usr/bin/jeezusmosesgah')
-    
 
     def test_invalid_url_with_only_http(self):
         self.mock_get.side_effect = InvalidURL
 
         with self.assertRaises(InvalidURL):
             download_img('http://')
-        
 
     def test_invalid_url_without_http(self):
         self.mock_get.side_effect = MissingSchema
@@ -173,20 +166,17 @@ class DownloadImgTest(unittest.TestCase):
         with self.assertRaises(MissingSchema):
             download_img('gahhh.com')
 
-
     def test_int_url_raises_error_and_requests_get_not_called(self):
         with self.assertRaises(TypeError):
             download_img(345)
 
         self.mock_get.assert_not_called()
 
-    
     def test_int_path_raises_type_error_and_requests_get_not_called(self):
         with self.assertRaises(TypeError):
             download_img('http://www.google.com', path=345)
-        
-        self.mock_get.assert_not_called()
 
+        self.mock_get.assert_not_called()
 
     @mock.patch('wikiwall.open', new_callable=mock.mock_open)
     def test_requests_get_and_open_called_with_valid_url(self, mock_open):
@@ -195,18 +185,16 @@ class DownloadImgTest(unittest.TestCase):
         self.mock_get.assert_called_with('http://www.google.com', stream=True)
         mock_open.assert_called()
 
-
     @mock.patch('wikiwall.open', new_callable=mock.mock_open)
     def test_path_with_None_value_becomes_the_cwdir(self, mock_open):
         url = 'http://www.blah.com/jeezus.jpg'
-        
+
         fullpath = download_img(url=url, dest=None)
         dirpath = os.path.dirname(fullpath)
 
         self.mock_makedirs.assert_called_with(self.mock_getcwd.return_value)
         self.assertEqual(dirpath, self.mock_getcwd.return_value)
 
-    
     @mock.patch('wikiwall.open', new_callable=mock.mock_open)
     def test_correct_file_path_returned_based_on_url_passed_in(self,  mock_open):
         tempdir = tempfile.TemporaryDirectory()
@@ -219,7 +207,6 @@ class DownloadImgTest(unittest.TestCase):
         self.assertEqual(filepath, expected_fpath)
 
         tempdir.cleanup()
-    
 
     def test_file_path_of_downloaded_file_is_an_actual_file(self):
         tempdir = tempfile.TemporaryDirectory()
@@ -247,7 +234,7 @@ class CleanDlsTest(unittest.TestCase):
 
     def get_jpegs(self, path):
         '''Return list of JPEG file paths from `path`.
-        
+
         Note: List is sorted by modification time, oldest to newest
         '''
         jpegs = []
@@ -261,20 +248,16 @@ class CleanDlsTest(unittest.TestCase):
 
         return jpegs
 
-
     def setUp(self):
         self.tempdir = tempfile.TemporaryDirectory()
 
-
     def tearDown(self):
         self.tempdir.cleanup()
-    
 
     def test_negative_limit(self):
         with self.assertRaises(ValueError):
             _clean_dls(limit=-1)
 
-    
     def test_float_limit(self):
         with self.assertRaises(ValueError):
             _clean_dls(limit=4.5)
@@ -290,7 +273,6 @@ class CleanDlsTest(unittest.TestCase):
 
         self.assertEqual(len(self.get_jpegs(wikiwall.DATA_DIR)), fnum)
         mock_remove.assert_not_called()
-    
 
     def test_removal_when_more_files_than_limit(self):
         limit = 5
@@ -302,11 +284,10 @@ class CleanDlsTest(unittest.TestCase):
 
         self.assertEqual(len(self.get_jpegs(wikiwall.DATA_DIR)), limit)
 
-
     def test_old_files_are_removed_first(self):
         limit = 2
         fnum = 5
-        
+
         # Before cleanup
         wikiwall.DATA_DIR = self.create_dls(path=self.tempdir.name, fnum=fnum)
 
@@ -318,7 +299,7 @@ class CleanDlsTest(unittest.TestCase):
 
         _clean_dls(limit=limit)
 
-         # After cleanup
+        # After cleanup
         jpegs = self.get_jpegs(wikiwall.DATA_DIR)
 
         for j in old:
@@ -330,13 +311,14 @@ class CleanDlsTest(unittest.TestCase):
 class RunAppScriptTest(unittest.TestCase):
 
     def setUp(self):
-        self.patcher_popen = mock.patch('wikiwall.subprocess.Popen', autospec=True)
+        self.patcher_popen = mock.patch(
+            'wikiwall.subprocess.Popen',
+            autospec=True,
+        )
         self.mock_popen = self.patcher_popen.start()
-
 
     def tearDown(self):
         self.patcher_popen.stop()
-        
 
     def test_raise_exception_if_return_code_not_zero(self):
         self.mock_popen.return_value.returncode = 1

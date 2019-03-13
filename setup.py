@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 
 with open('README.rst', 'r', encoding='utf-8') as fh:
@@ -34,4 +34,3 @@ setup(
         wikiwall=wikiwall:cli
     '''
 )
-

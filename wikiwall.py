@@ -1,7 +1,7 @@
 '''
     wikiwall.py
     ~~~~~~~~~~~
-    
+
     Downloads a random image from Wikiart's Hi-Res page
     and sets it as the desktop background in MacOS.
 
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 XDG_DATA_HOME = os.environ.get(
-    'XDG_DATA_HOME', 
+    'XDG_DATA_HOME',
     os.path.join(os.path.expanduser('~'), '.local/share')
 )
 DATA_DIR = os.path.join(XDG_DATA_HOME, 'wikiwall')
@@ -45,7 +45,9 @@ def config_logger(debug, logfile=None):
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
 
-    formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+    formatter = logging.Formatter('''
+        %(asctime)s %(name)-12s %(levelname)-8s %(message)s
+    ''')
 
     # Push logs to stdout.
     if debug:
@@ -56,8 +58,8 @@ def config_logger(debug, logfile=None):
 
     # Add logfile with 10MB limit
     rh = RotatingFileHandler(
-        filename=logfile, 
-        maxBytes=10485760, 
+        filename=logfile,
+        maxBytes=10485760,
         backupCount=10
     )
     rh.setLevel(logging.WARNING)
@@ -66,19 +68,19 @@ def config_logger(debug, logfile=None):
 
 
 def get_random(iterator, k=1):
-    '''Get random sample of items in iterator. 
-    
+    '''Get random sample of items in iterator.
+
     Args:
         iterator: any iterator you want random samples from.
         k: number of samples to return.
 
-    Note: 
-        Warning log if `k` is less than size of the iterator. Not 
-        an issue inside this function because max num of iterations 
+    Note:
+        Warning log if `k` is less than size of the iterator. Not
+        an issue inside this function because max num of iterations
         will be number of items in `iterator`, not `k`, but could be
         one if you expect size of `results` to always equal to `k`.
 
-    Returns: 
+    Returns:
         results: List of random items from iterator. Number of items
         is `k` or number of items in `iterator` if `k` is larger than
         the total number of items.
@@ -93,16 +95,19 @@ def get_random(iterator, k=1):
             s = int(random.random() * i)
             if s < k:
                 results[s] = item
-    
+
     if len(results) < k:
-        logger.warning('Size of iterator (%s) is less than k (%s)', len(results), k)
+        logger.warning(
+            'Size of iterator (%s) is less than k (%s)',
+            len(results), k,
+        )
 
     return results
 
 
 def scrape_urls(src_url):
     '''Scrape jpg urls.
-    
+
     Args:
         src_url: URL to scrape.
 
@@ -118,7 +123,7 @@ def scrape_urls(src_url):
     # Exceptions raised here if connection issue arises
     r = requests.get(src_url)
     r.raise_for_status()
- 
+
     content = r.content
 
     soup = BeautifulSoup(content, 'lxml')
@@ -131,15 +136,15 @@ def scrape_urls(src_url):
 
 def download_img(url, dest=None):
     '''Download img from url.
-    
+
     Args:
         url: url of image file.
         dest: where to download file. Default is current directory.
-    
+
     Raises:
         TypeError: if url or dest aren't strings.
 
-    Returns: 
+    Returns:
         path: local path to downloaded file.
 
     '''
@@ -152,7 +157,7 @@ def download_img(url, dest=None):
         dest = os.getcwd()
     if not os.path.exists(dest) or not os.path.isdir(dest):
         os.makedirs(dest)
-     
+
     filename = url.split('/')[-1]
     path = os.path.join(dest, filename)
 
@@ -166,9 +171,9 @@ def download_img(url, dest=None):
             total=int(file_sz/chunk_sz),
             unit_scale=True,
             unit='KB'
-            ):
+        ):
             f.write(chunk)
-        
+
     logger.info('%s downloaded to %s', filename, dest)
 
     return path
@@ -176,13 +181,13 @@ def download_img(url, dest=None):
 
 def _clean_dls(limit):
     ''' Check that number of images saved so far is no more than `limit`.
-    
+
     Args:
         limit: maximum number of downloads allowed in download directory.
-    
+
     Raises:
         ValueError: if `limit` is not an positive integer.
-    
+
     '''
     if not isinstance(limit, int) or limit < 0:
         raise ValueError('`limit` must be a positive integer.')
@@ -228,22 +233,28 @@ def _run_appscript(script):
 
 
 @click.command()
-@click.option('--dest', default=DATA_DIR, help='Download images to specified destination.' )
 @click.option(
-    '--limit', 
-    default=10, 
-    help='Number of files to keep in download directory. Set to -1 for no limit. Default is 10. '
+    '--dest',
+    default=DATA_DIR,
+    help='Download images to specified destination.'
 )
 @click.option(
-    '--debug', 
-    is_flag=True, 
+    '--limit',
+    default=10,
+    help='''
+        Number of files to keep in download directory. Set to -1 for no limit. Default is 10.
+    '''
+)
+@click.option(
+    '--debug',
+    is_flag=True,
     help='Show debugging messages.'
 )
 def cli(dest, limit, debug):
     '''Set desktop background in MacOS to random WikiArt image.'''
 
     config_logger(debug)
-    
+
     try:
         # Retrieve random hi-res image.
         print('Searching for image...')
@@ -253,9 +264,9 @@ def cli(dest, limit, debug):
         # Clean out DL directory if limit reached.
         if limit != -1:
             _clean_dls(limit)
-        
+
         # Set image as desktop background.
-        script_setwall = ''' 
+        script_setwall = '''
         tell application "System Events"
             tell every desktop
                 set picture to "{}"
@@ -274,7 +285,7 @@ def cli(dest, limit, debug):
         logger.exception('Something went wrong.')
         print('Something went wrong. Check the logs.')
         sys.exit(1)
-    
+
 
 if __name__ == '__main__':
     try:
