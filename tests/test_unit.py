@@ -294,7 +294,7 @@ class CleanDlsTest(unittest.TestCase):
         jpegs = self.get_jpegs(wikiwall.DATA_DIR)
 
         # Grab oldest 3 files and newest 2.
-        old = jpegs[:fnum-limit]
+        old = jpegs[:fnum - limit]
         new = jpegs[-limit:]
 
         _clean_dls(limit=limit)

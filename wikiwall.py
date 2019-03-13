@@ -168,7 +168,7 @@ def download_img(url, dest=None):
         print(f'Downloading {filename}...')
         for chunk in tqdm(
             iterable=r.iter_content(chunk_sz),
-            total=int(file_sz/chunk_sz),
+            total=int(file_sz / chunk_sz),
             unit_scale=True,
             unit='KB'
         ):
