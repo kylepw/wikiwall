@@ -1,9 +1,10 @@
-.env
+.tox/
 __pycache__/
 venv/
 dist/
 build/
 .vscode/
+.env
 *.py[cod]
 *.log
 *.egg-info
