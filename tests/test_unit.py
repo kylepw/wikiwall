@@ -6,7 +6,9 @@ from requests.exceptions import HTTPError, InvalidURL, MissingSchema
 import tempfile
 import unittest
 import unittest.mock as mock
+import wikiwall
 from wikiwall import (
+    config_logger,
     data_dir,
     _clean_dls,
     _run_appscript,
@@ -19,7 +21,46 @@ from wikiwall import (
 LOGGER = logging.getLogger('wikiwall')
 
 
-# Write tests for new function!
+class ConfigLoggerTest(unittest.TestCase):
+
+    def setUp(self):
+        self.patcher_logging = mock.patch('wikiwall.logging')
+        self.mock_logging = self.patcher_logging.start()
+
+        self.patcher_rotate = mock.patch('wikiwall.RotatingFileHandler')
+        self.mock_rotate = self.patcher_rotate.start()
+
+        self.patcher_getcwd = mock.patch(
+            'wikiwall.os.getcwd',
+            return_value='/Users/mock',
+            autospec=True
+        )
+        self.mock_getcwd = self.patcher_getcwd.start()
+
+    def tearDown(self):
+        self.patcher_logging.stop()
+        self.patcher_rotate.stop()
+        self.patcher_getcwd.stop()
+
+    def test_debug_is_true(self):
+        with mock.patch.object(wikiwall.logging, 'StreamHandler') as mock_sh:
+            config_logger(debug=True)
+        mock_sh.assert_called()
+
+    def test_debug_is_None(self):
+        with mock.patch.object(wikiwall.logging, 'StreamHandler') as mock_sh:
+            config_logger(debug=None)
+        mock_sh.assert_not_called()
+
+    def test_path_is_None(self):
+        config_logger(debug=None, path=None)
+        self.mock_getcwd.assert_called_once()
+
+    def test_path_is_not_None(self):
+        config_logger(debug=None, path='/mock/path')
+        self.mock_getcwd.assert_not_called()
+
+
 class DataDirTest(unittest.TestCase):
 
     def setUp(self):
@@ -31,10 +72,10 @@ class DataDirTest(unittest.TestCase):
 
         self.patcher_expanduser = mock.patch(
             'wikiwall.os.path.expanduser',
+            return_value='/Users/mock',
             autospec=True
         )
         self.mock_expanduser = self.patcher_expanduser.start()
-        self.mock_expanduser.return_value = '/Users/mock'
 
     def tearDown(self):
         self.patcher_makedirs.stop()
@@ -214,6 +255,10 @@ class DownloadImgTest(unittest.TestCase):
 
         self.mock_get.assert_not_called()
 
+    def test_dest_is_not_a_string(self):
+        with self.assertRaises(TypeError):
+            download_img('http://www.google.com', dest=123)
+
     @mock.patch('wikiwall.open', new_callable=mock.mock_open)
     def test_requests_get_and_open_called_with_valid_url(self, mock_open):
         download_img('http://www.google.com')
@@ -241,6 +286,17 @@ class DownloadImgTest(unittest.TestCase):
         filepath = download_img(url=url, dest=tempdir.name)
 
         self.assertEqual(filepath, expected_fpath)
+
+        tempdir.cleanup()
+
+    @mock.patch('wikiwall.open', new_callable=mock.mock_open)
+    def test_write_called_with_valid_url_and_dest(self, mock_open):
+        tempdir = tempfile.TemporaryDirectory()
+
+        with mock.patch('wikiwall.tqdm', return_value=['chunk']):
+            download_img(url='http://jeezus', dest=tempdir.name)
+
+        mock_open.return_value.write.assert_called()
 
         tempdir.cleanup()
 
@@ -283,6 +339,7 @@ class CleanDlsTest(unittest.TestCase):
         return jpegs
 
     def setUp(self):
+
         self.tempdir = tempfile.TemporaryDirectory()
 
     def tearDown(self):
@@ -295,6 +352,14 @@ class CleanDlsTest(unittest.TestCase):
     def test_float_limit(self):
         with self.assertRaises(ValueError):
             _clean_dls(limit=4.5, path=self.tempdir.name)
+
+    def test_getcwd_called_when_no_path_given(self):
+        with mock.patch(
+            'wikiwall.os.getcwd',
+            return_value=self.tempdir.name
+        ) as mock_getcwd:
+            _clean_dls(limit=4, path=None)
+        mock_getcwd.assert_called()
 
     def test_no_removal_when_less_files_than_limit(self):
         limit = 10
@@ -345,17 +410,19 @@ class CleanDlsTest(unittest.TestCase):
 class RunAppScriptTest(unittest.TestCase):
 
     def setUp(self):
-        self.patcher_popen = mock.patch(
-            'wikiwall.subprocess.Popen',
-            autospec=True,
+        self.patcher_run = mock.patch(
+            'wikiwall.subprocess.run',
+            side_effect=wikiwall.subprocess.CalledProcessError(
+                returncode=1,
+                cmd='gah',
+                stderr=b'')
         )
-        self.mock_popen = self.patcher_popen.start()
+        self.mock_run = self.patcher_run.start()
 
     def tearDown(self):
-        self.patcher_popen.stop()
+        self.patcher_run.stop()
 
     def test_raise_exception_if_return_code_not_zero(self):
-        self.mock_popen.return_value.returncode = 1
 
         with self.assertRaises(ValueError):
-            _run_appscript('bad script')
+            _run_appscript('gah')

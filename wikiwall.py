@@ -25,7 +25,7 @@ from tqdm import tqdm
 logger = logging.getLogger(__name__)
 
 
-# Hi-Res page images for PC screen dimensions.
+# Source of Hi-Res images
 SRC_URL = 'https://www.wikiart.org/en/high-resolution-artworks'
 
 

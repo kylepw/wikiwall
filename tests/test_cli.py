@@ -63,5 +63,33 @@ class CliTest(unittest.TestCase):
 
         self.mock_info.assert_any_call('Download limit set to %s.', limit)
 
-    def test_show_subcommand(self):
-        pass
+    def test_message_on_random_exception_in_cli_body(self):
+        with mock.patch(
+            'wikiwall.get_random',
+            side_effect=ValueError
+        ):
+            result = self.runner.invoke(cli, ['--limit', '2'])
+        self.assertIn('Something went wrong. Check the logs.', result.output)
+
+
+class ShowSubcommandTest(unittest.TestCase):
+
+    def setUp(self):
+        self.runner = CliRunner()
+
+        self.patcher_runapp = mock.patch('wikiwall._run_appscript')
+        self.mock_runapp = self.patcher_runapp.start()
+
+    def tearDown(self):
+        self.patcher_runapp.stop()
+
+    def test_cli_code_doesnt_execute_if_show_subcommand_passed(self):
+
+        with mock.patch('wikiwall.get_random') as mock_get_random:
+            self.runner.invoke(cli, ['show'])
+        mock_get_random.assert_not_called()
+
+    def test_show_subcommand_runs_applescript(self):
+
+        self.runner.invoke(cli, ['show'])
+        self.mock_runapp.assert_called()

@@ -4,6 +4,7 @@ venv/
 dist/
 build/
 .vscode/
+.coverage
 .env
 *.py[cod]
 *.log
