@@ -6,7 +6,7 @@ with open('README.rst', 'r', encoding='utf-8') as fh:
 
 setup(
     name='wikiwall',
-    version='0.0.1',
+    version='0.0.2',
     author='Kyle Weeks',
     author_email='kylepw@gmail.com',
     description='Set desktop background to random Wikiart image.',

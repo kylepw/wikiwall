@@ -6,8 +6,8 @@ from requests.exceptions import HTTPError, InvalidURL, MissingSchema
 import tempfile
 import unittest
 import unittest.mock as mock
-import wikiwall
 from wikiwall import (
+    data_dir,
     _clean_dls,
     _run_appscript,
     download_img,
@@ -17,6 +17,42 @@ from wikiwall import (
 
 
 LOGGER = logging.getLogger('wikiwall')
+
+
+# Write tests for new function!
+class DataDirTest(unittest.TestCase):
+
+    def setUp(self):
+        self.patcher_makedirs = mock.patch(
+            'wikiwall.os.makedirs',
+            autospec=True,
+        )
+        self.mock_makedirs = self.patcher_makedirs.start()
+
+        self.patcher_expanduser = mock.patch(
+            'wikiwall.os.path.expanduser',
+            autospec=True
+        )
+        self.mock_expanduser = self.patcher_expanduser.start()
+        self.mock_expanduser.return_value = '/Users/mock'
+
+    def tearDown(self):
+        self.patcher_makedirs.stop()
+        self.patcher_expanduser.stop()
+
+    @mock.patch.dict(os.environ, {'XDG_DATA_HOME': '/tmp'})
+    def test_xdg_data_home_env_variable_exists(self):
+        self.assertEqual(data_dir(), '/tmp/wikiwall')
+
+    @mock.patch.dict(os.environ, {})
+    def test_xdg_data_home_env_variables_doesnt_exist(self):
+        self.assertEqual(
+            data_dir(),
+            os.path.join(
+                self.mock_expanduser.return_value,
+                '.local/share/wikiwall'
+            )
+        )
 
 
 class GetRandomTest(unittest.TestCase):
@@ -230,8 +266,6 @@ class CleanDlsTest(unittest.TestCase):
             with open(os.path.join(path, fname), 'w') as f:
                 f.write('faux jpeg file')
 
-        return path
-
     def get_jpegs(self, path):
         '''Return list of JPEG file paths from `path`.
 
@@ -256,51 +290,51 @@ class CleanDlsTest(unittest.TestCase):
 
     def test_negative_limit(self):
         with self.assertRaises(ValueError):
-            _clean_dls(limit=-1)
+            _clean_dls(limit=-1, path=self.tempdir.name)
 
     def test_float_limit(self):
         with self.assertRaises(ValueError):
-            _clean_dls(limit=4.5)
+            _clean_dls(limit=4.5, path=self.tempdir.name)
 
     def test_no_removal_when_less_files_than_limit(self):
         limit = 10
         fnum = 5
 
-        wikiwall.DATA_DIR = self.create_dls(path=self.tempdir.name, fnum=fnum)
+        self.create_dls(path=self.tempdir.name, fnum=fnum)
 
         with mock.patch('wikiwall.os.remove', autospec=True) as mock_remove:
-            _clean_dls(limit=limit)
+            _clean_dls(limit, path=self.tempdir.name)
 
-        self.assertEqual(len(self.get_jpegs(wikiwall.DATA_DIR)), fnum)
+        self.assertEqual(len(self.get_jpegs(path=self.tempdir.name)), fnum)
         mock_remove.assert_not_called()
 
     def test_removal_when_more_files_than_limit(self):
         limit = 5
         fnum = 10
 
-        wikiwall.DATA_DIR = self.create_dls(path=self.tempdir.name, fnum=fnum)
+        self.create_dls(path=self.tempdir.name, fnum=fnum)
 
-        _clean_dls(limit=limit)
+        _clean_dls(limit=limit, path=self.tempdir.name)
 
-        self.assertEqual(len(self.get_jpegs(wikiwall.DATA_DIR)), limit)
+        self.assertEqual(len(self.get_jpegs(path=self.tempdir.name)), limit)
 
     def test_old_files_are_removed_first(self):
         limit = 2
         fnum = 5
 
         # Before cleanup
-        wikiwall.DATA_DIR = self.create_dls(path=self.tempdir.name, fnum=fnum)
+        self.create_dls(path=self.tempdir.name, fnum=fnum)
 
-        jpegs = self.get_jpegs(wikiwall.DATA_DIR)
+        jpegs = self.get_jpegs(path=self.tempdir.name)
 
         # Grab oldest 3 files and newest 2.
         old = jpegs[:fnum - limit]
         new = jpegs[-limit:]
 
-        _clean_dls(limit=limit)
+        _clean_dls(limit=limit, path=self.tempdir.name)
 
         # After cleanup
-        jpegs = self.get_jpegs(wikiwall.DATA_DIR)
+        jpegs = self.get_jpegs(path=self.tempdir.name)
 
         for j in old:
             self.assertNotIn(j, jpegs)
@@ -325,7 +359,3 @@ class RunAppScriptTest(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             _run_appscript('bad script')
-
-
-if __name__ == '__main__':
-    unittest.main(failfast=True)

@@ -13,7 +13,7 @@ Features
 
 Requirements
 ------------
-- Python 3.7 or higher
+- Python 3.6 or higher
 - macOS
 
 
@@ -36,15 +36,19 @@ Usage
 ::
 
 	$ wikiwall --help
-	Usage: wikiwall [OPTIONS]
+	Usage: wikiwall [OPTIONS] COMMAND [ARGS]...
 
-	  Set desktop background in macOS to random WikiArt image.
+  	  Set desktop background in macOS to random WikiArt image.
 
 	Options:
   	  --dest TEXT      Download images to specified destination.
-  	  --limit INTEGER  Number of files to keep in download directory. Set to -1 for no limit. Default is 10.
+  	  --limit INTEGER  Number of files to keep in download directory. Set to -1
+   	                   for no limit. Default is 10.
   	  --debug          Show debugging messages.
   	  --help           Show this message and exit.
+
+	Commands:
+  	  show  Show previous downloads in Finder.
 
 Todo
 ----
