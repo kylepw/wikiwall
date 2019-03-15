@@ -62,3 +62,6 @@ class CliTest(unittest.TestCase):
         self.runner.invoke(cli, [f'--limit={limit}'])
 
         self.mock_info.assert_any_call('Download limit set to %s.', limit)
+
+    def test_show_subcommand(self):
+        pass

@@ -25,22 +25,17 @@ from tqdm import tqdm
 logger = logging.getLogger(__name__)
 
 
-XDG_DATA_HOME = os.environ.get(
-    'XDG_DATA_HOME',
-    os.path.join(os.path.expanduser('~'), '.local/share')
-)
-DATA_DIR = os.path.join(XDG_DATA_HOME, 'wikiwall')
-
-
 # Hi-Res page images for PC screen dimensions.
 SRC_URL = 'https://www.wikiart.org/en/high-resolution-artworks'
 
 
-def config_logger(debug, logfile=None):
+def config_logger(debug, path=None):
     ''' Configure module logger.'''
 
-    if logfile is None:
-        logfile = os.path.join(DATA_DIR, __name__ + '.log')
+    if path is not None:
+        logfile = os.path.join(path, __name__ + '.log')
+    else:
+        logfile = os.path.join(os.getcwd(), __name__ + '.log')
 
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
@@ -65,6 +60,21 @@ def config_logger(debug, logfile=None):
     rh.setLevel(logging.WARNING)
     rh.setFormatter(formatter)
     logger.addHandler(rh)
+
+
+def data_dir():
+    '''Return path to data directory.'''
+
+    xdg_data_home = os.environ.get(
+        'XDG_DATA_HOME',
+        os.path.join(os.path.expanduser('~'), '.local/share')
+    )
+    path = os.path.join(xdg_data_home, 'wikiwall')
+
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    return path
 
 
 def get_random(iterator, k=1):
@@ -179,11 +189,12 @@ def download_img(url, dest=None):
     return path
 
 
-def _clean_dls(limit):
+def _clean_dls(limit, path=None):
     ''' Check that number of images saved so far is no more than `limit`.
 
     Args:
         limit: maximum number of downloads allowed in download directory.
+        path: path to saved images. Default to current working directory.
 
     Raises:
         ValueError: if `limit` is not an positive integer.
@@ -192,17 +203,20 @@ def _clean_dls(limit):
     if not isinstance(limit, int) or limit < 0:
         raise ValueError('`limit` must be a positive integer.')
 
+    if path is None:
+        path = os.getcwd()
+
     # collect jpg file paths
     jpegs = []
-    for f in os.listdir(DATA_DIR):
-        if os.path.isfile(os.path.join(DATA_DIR, f)):
+    for f in os.listdir(path):
+        if os.path.isfile(os.path.join(path, f)):
             if f.lower().endswith('.jpg'):
-                jpegs.append(os.path.join(DATA_DIR, f))
+                jpegs.append(os.path.join(path, f))
 
     # check if limit exceeded
     if len(jpegs) > limit:
 
-        logger.info('%s jpeg files in %s', len(jpegs), DATA_DIR)
+        logger.info('%s jpeg files in %s', len(jpegs), path)
         logger.info('Cleaning...')
 
         # sort by modification time, oldest to newest
@@ -229,7 +243,7 @@ def _run_appscript(script):
         raise ValueError(err.stderr.decode())
 
 
-@click.command()
+@click.group(invoke_without_command=True)
 @click.option(
     '--dest',
     help='Download images to specified destination.'
@@ -246,17 +260,27 @@ def _run_appscript(script):
     is_flag=True,
     help='Show debugging messages.'
 )
-def cli(dest, limit, debug):
+@click.pass_context
+def cli(ctx, dest, limit, debug):
     '''Set desktop background in macOS to random WikiArt image.'''
 
-    config_logger(debug)
+    DATA_DIR = data_dir()
+
+    config_logger(debug, path=DATA_DIR)
 
     if debug:
         print('Debug mode is on.')
     if dest is None:
         dest = DATA_DIR
-    else:
-        logger.info('Destination set to %s', dest)
+    logger.info('Destination set to %s', dest)
+
+    # Setup context passed to subcommands.
+    ctx.ensure_object(dict)
+    ctx.obj['DEST'] = dest
+
+    # Skip below if subcommand `show` invoked.
+    if ctx.invoked_subcommand == 'show':
+        return
 
     try:
         # Retrieve random hi-res image.
@@ -267,20 +291,21 @@ def cli(dest, limit, debug):
         # Clean out DL directory if limit reached.
         if limit != -1:
             logger.info('Download limit set to %s.', limit)
-            _clean_dls(limit)
+            _clean_dls(limit, path=dest)
         else:
             logger.info('No download limit set. Skipping cleaning.')
 
         # Set image as desktop background.
-        script_setwall = '''
-        tell application "System Events"
-            tell every desktop
-                set picture to "{}"
+        setwall_script = f'''
+            tell application "System Events"
+                tell every desktop
+                    set picture to "{saved_img}"
+                end tell
             end tell
-        end tell'''.format(saved_img)
+        '''
 
         print('Setting background... ', end='')
-        _run_appscript(script_setwall)
+        _run_appscript(setwall_script)
 
         sys.stdout.flush()
         time.sleep(1)
@@ -293,8 +318,21 @@ def cli(dest, limit, debug):
         sys.exit(1)
 
 
+@cli.command()
+@click.pass_context
+def show(ctx):
+    '''Show previous downloads in Finder.'''
+
+    open_script = f'''
+    tell application "Finder"
+        open POSIX file "{ctx.obj['DEST']}"
+    end tell
+    '''
+    _run_appscript(open_script)
+
+
 if __name__ == '__main__':
     try:
-        cli()
+        cli(obj={})
     except KeyboardInterrupt:
         print('\nSee you!')
