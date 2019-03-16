@@ -1,6 +1,11 @@
 ========
 wikiwall
 ========
+.. image:: https://travis-ci.com/kylepw/wikiwall.svg?branch=master
+    :target: https://travis-ci.com/kylepw/wikiwall
+.. image:: https://coveralls.io/repos/github/kylepw/wikiwall/badge.svg?branch=master
+	:target: https://coveralls.io/github/kylepw/wikiwall?branch=master
+
 *wikiwall* is a CLI that downloads a random image from Wikiart's Hi-Res page and sets it as your desktop background in macOS.
 
 .. image:: https://github.com/kylepw/wikiwall/blob/master/example.gif
@@ -54,6 +59,7 @@ Todo
 ----
 - Add documentation to Sphinx.
 - Add support for other operating systems.
+- Provide preview of image before setting as background.
 
 License
 -------

@@ -1,4 +1,3 @@
-import logging
 import os
 import os.path
 import requests
@@ -16,9 +15,6 @@ from wikiwall import (
     get_random,
     scrape_urls,
 )
-
-
-LOGGER = logging.getLogger('wikiwall')
 
 
 class ConfigLoggerTest(unittest.TestCase):
@@ -118,9 +114,9 @@ class GetRandomTest(unittest.TestCase):
     def test_for_warning_if_k_is_greater_than_size_of_iterable(self):
         values, k = ['a', 'b', 'c', 'd', 'e', 'f'], 10
 
-        with mock.patch.object(LOGGER, 'warning') as mock_warning:
+        with mock.patch('wikiwall.logger') as mock_logger:
             get_random(values, k)
-        mock_warning.assert_called_with(
+        mock_logger.warning.assert_called_with(
             'Size of iterator (%s) is less than k (%s)',
             len(values), k
         )
