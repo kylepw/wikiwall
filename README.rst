@@ -59,6 +59,7 @@ Usage
 Todo
 ----
 - Set wallpaper on a desktop not currently being viewed.
+- Add support for other operating systems.
 - Provide preview of image before setting as background.
 
 License
