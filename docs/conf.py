@@ -95,15 +95,11 @@ html_static_path = ['_static']
 # default: ``['localtoc.html', 'relations.html', 'sourcelink.html',
 # 'searchbox.html']``.
 #
-<<<<<<< HEAD
 html_sidebars = {
     'github_user': 'kylepw',
     'github_repo': 'wikiwall',
     'github_button': 'true',
 }
-=======
-# html_sidebars = {}
->>>>>>> cbb1b4522aee624c034c86810233ab3049042afa
 
 
 # -- Options for HTMLHelp output ---------------------------------------------

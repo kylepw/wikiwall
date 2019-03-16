@@ -59,15 +59,9 @@
 </pre></div>
 </div>
 <p>If you want, set your wallpaper to change every night with launchd:</p>
-<<<<<<< HEAD
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/kylepw/wikiwall.git &amp;&amp; cd wikiwall
 $ sed -i.bak -e &quot;s|WIKIWALL|$(which wikiwall)|g&quot; wikiwall.plist
 $ cp wikiwall.plist ~/Library/LaunchAgents
-=======
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/kylepw/wikiwall.git
-$ sed -i.bak -e &quot;s|WIKIWALL|$(which wikiwall)|g&quot; wikiwall/wikiwall.plist
-$ cp wikiwall/wikiwall.plist ~/Library/LaunchAgents
->>>>>>> cbb1b4522aee624c034c86810233ab3049042afa
 $ launchctl load ~/Library/LaunchAgents/wikiwall.plist
 </pre></div>
 </div>
@@ -94,12 +88,8 @@ Commands:
 <div class="section" id="todo">
 <h2>Todo<a class="headerlink" href="#todo" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<<<<<<< HEAD
 <li>Set wallpaper on a desktop not currently being viewed.</li>
-=======
-<li>Add documentation to Sphinx.</li>
 <li>Add support for other operating systems.</li>
->>>>>>> cbb1b4522aee624c034c86810233ab3049042afa
 <li>Provide preview of image before setting as background.</li>
 </ul>
 </div>
