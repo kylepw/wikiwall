@@ -3,12 +3,15 @@ wikiwall
 ========
 .. image:: https://travis-ci.com/kylepw/wikiwall.svg?branch=master
     :target: https://travis-ci.com/kylepw/wikiwall
+.. image:: https://readthedocs.org/projects/wikiwall/badge/?version=latest
+	:target: https://wikiwall.readthedocs.io/en/latest/?badge=latest
+	:alt: Documentation Status
 .. image:: https://coveralls.io/repos/github/kylepw/wikiwall/badge.svg?branch=master
 	:target: https://coveralls.io/github/kylepw/wikiwall?branch=master
 
 *wikiwall* is a CLI that downloads a random image from Wikiart's Hi-Res page and sets it as your desktop background in macOS.
 
-.. image:: https://github.com/kylepw/wikiwall/blob/master/example.gif
+.. image:: https://github.com/kylepw/wikiwall/blob/master/docs/_static/example.gif
 	:align: center
 
 Features

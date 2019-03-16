@@ -9,6 +9,7 @@ wheel = "*"
 flake8 = "*"
 tox = "*"
 coverage = "*"
+sphinx = "*"
 
 [packages]
 tqdm = "*"
