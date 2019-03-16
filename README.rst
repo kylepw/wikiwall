@@ -3,12 +3,15 @@ wikiwall
 ========
 .. image:: https://travis-ci.com/kylepw/wikiwall.svg?branch=master
     :target: https://travis-ci.com/kylepw/wikiwall
+.. image:: https://readthedocs.org/projects/wikiwall/badge/?version=latest
+	:target: https://wikiwall.readthedocs.io/en/latest/?badge=latest
+	:alt: Documentation Status
 .. image:: https://coveralls.io/repos/github/kylepw/wikiwall/badge.svg?branch=master
 	:target: https://coveralls.io/github/kylepw/wikiwall?branch=master
 
 *wikiwall* is a CLI that downloads a random image from Wikiart's Hi-Res page and sets it as your desktop background in macOS.
 
-.. image:: https://github.com/kylepw/wikiwall/blob/master/example.gif
+.. image:: https://github.com/kylepw/wikiwall/blob/master/docs/_static/example.gif
 	:align: center
 
 Features
@@ -21,7 +24,6 @@ Requirements
 - Python 3.6 or higher
 - macOS
 
-
 Installation
 ------------
 ::
@@ -30,11 +32,10 @@ Installation
 
 If you want, set your wallpaper to change every night with launchd: ::
 
-	$ git clone https://github.com/kylepw/wikiwall.git
-	$ sed -i.bak -e "s|WIKIWALL|$(which wikiwall)|g" wikiwall/wikiwall.plist
-	$ cp wikiwall/wikiwall.plist ~/Library/LaunchAgents
+	$ git clone https://github.com/kylepw/wikiwall.git && cd wikiwall
+	$ sed -i.bak -e "s|WIKIWALL|$(which wikiwall)|g" wikiwall.plist
+	$ cp wikiwall.plist ~/Library/LaunchAgents
 	$ launchctl load ~/Library/LaunchAgents/wikiwall.plist
-
 
 Usage
 -----
@@ -57,8 +58,7 @@ Usage
 
 Todo
 ----
-- Add documentation to Sphinx.
-- Add support for other operating systems.
+- Set wallpaper on a desktop not currently being viewed.
 - Provide preview of image before setting as background.
 
 License
