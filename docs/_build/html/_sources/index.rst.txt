@@ -23,6 +23,10 @@ Requirements
 - Python 3.6 or higher
 - macOS
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> cbb1b4522aee624c034c86810233ab3049042afa
 Installation
 ------------
 ::
@@ -31,11 +35,20 @@ Installation
 
 If you want, set your wallpaper to change every night with launchd: ::
 
+<<<<<<< HEAD
 	$ git clone https://github.com/kylepw/wikiwall.git && cd wikiwall
 	$ sed -i.bak -e "s|WIKIWALL|$(which wikiwall)|g" wikiwall.plist
 	$ cp wikiwall.plist ~/Library/LaunchAgents
 	$ launchctl load ~/Library/LaunchAgents/wikiwall.plist
 
+=======
+	$ git clone https://github.com/kylepw/wikiwall.git
+	$ sed -i.bak -e "s|WIKIWALL|$(which wikiwall)|g" wikiwall/wikiwall.plist
+	$ cp wikiwall/wikiwall.plist ~/Library/LaunchAgents
+	$ launchctl load ~/Library/LaunchAgents/wikiwall.plist
+
+
+>>>>>>> cbb1b4522aee624c034c86810233ab3049042afa
 Usage
 -----
 ::
@@ -57,7 +70,12 @@ Usage
 
 Todo
 ----
+<<<<<<< HEAD
 - Set wallpaper on a desktop not currently being viewed.
+=======
+- Add documentation to Sphinx.
+- Add support for other operating systems.
+>>>>>>> cbb1b4522aee624c034c86810233ab3049042afa
 - Provide preview of image before setting as background.
 
 License
