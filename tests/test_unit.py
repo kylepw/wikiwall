@@ -134,13 +134,15 @@ class ScrapeUrlsTest(unittest.TestCase):
     def get_resp(
         self,
         status_code=200,
-        content='<html></html>',
+        headers={'Content-Type': 'application/json; charset=utf-8'},
+        json={},
         raise_for_status=None
     ):
         ''' Returns a mock requests Response object.'''
         mock_resp = mock.Mock(spec=requests.models.Response)
         mock_resp.status_code = status_code
-        mock_resp.content = content
+        mock_resp.headers = headers
+        mock_resp.json.return_value = json
 
         # mock raise_for_status call w/optional error
         if raise_for_status:
@@ -166,29 +168,52 @@ class ScrapeUrlsTest(unittest.TestCase):
         with self.assertRaises(HTTPError):
             list(scrape_urls('http://www.google.com/admin'))
 
-    def test_src_url_content_with_correct_class_and_img_urls(self):
+    def test_src_url_content_with_valid_json_data(self):
         src = 'http://mockkkkkkkk.com'
-        src_content = b'''
-            <div class="artworks-by-dictionary">http://s.com/fake1.jpg http://s.com/fake2.jpg</div>
-        '''
+        src_data = {
+            'Paintings': [
+                {'id': '1', 'image': 'image1.jpg'},
+                {'id': '2', 'image': 'image2.jpg'}
+            ]
+        }
 
-        mock_resp = self.get_resp(content=src_content)
+        mock_resp = self.get_resp(json=src_data)
         self.mock_get.return_value = mock_resp
 
         urls = scrape_urls(src)
 
         self.assertEqual(sum(1 for _ in urls), 2)
 
-    def test_src_url_content_without_correct_class_and_img_urls(self):
+    def test_src_url_content_with_no_Paintings_value_json_data(self):
         src = 'http://sitethatdoesnotexist.com'
-        src_content = b'<html></html>'
+        src_data = {
+            'Pine': [
+                {'id': '1', 'gerbils': 'image1.jpg'},
+                {'id': '2', 'gerbils': 'image2.jpg'}
+            ]
+        }
 
-        mock_resp = self.get_resp(content=src_content)
+        mock_resp = self.get_resp(json=src_data)
         self.mock_get.return_value = mock_resp
 
         urls = scrape_urls(src)
+        self.assertEqual([*urls], [''])
 
-        self.assertEqual(sum(1 for _ in urls), 0)
+    def test_src_url_content_with_no_images_values_json_data(self):
+        src = 'http://sitethatdoesnotexist.com'
+        src_data = {
+            'Paintings': [
+                {'id': '1', 'gerbils': 'image1.jpg'},
+                {'id': '2', 'gerbils': 'image2.jpg'}
+            ]
+        }
+
+        mock_resp = self.get_resp(json=src_data)
+        self.mock_get.return_value = mock_resp
+
+        urls = scrape_urls(src)
+        print(urls)
+        self.assertEqual([*urls], ['', ''])
 
 
 class DownloadImgTest(unittest.TestCase):

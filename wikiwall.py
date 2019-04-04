@@ -7,14 +7,12 @@
 
 '''
 
-from bs4 import BeautifulSoup
 import click
 import logging
 from logging.handlers import RotatingFileHandler
 import os
 import os.path
 import random
-import re
 import requests
 import subprocess
 import sys
@@ -26,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 # Source of Hi-Res images
-SRC_URL = 'https://www.wikiart.org/en/high-resolution-artworks'
+SRC_URL = 'https://www.wikiart.org/?json=2&layout=new&param=high_resolution'
 
 
 def config_logger(debug, path=None):
@@ -40,9 +38,11 @@ def config_logger(debug, path=None):
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.DEBUG)
 
-    formatter = logging.Formatter('''
+    formatter = logging.Formatter(
+        '''
         %(asctime)s %(name)-12s %(levelname)-8s %(message)s
-    ''')
+    '''
+    )
 
     # Push logs to stdout.
     if debug:
@@ -52,11 +52,7 @@ def config_logger(debug, path=None):
         logger.addHandler(ch)
 
     # Add logfile with 10MB limit
-    rh = RotatingFileHandler(
-        filename=logfile,
-        maxBytes=10485760,
-        backupCount=10
-    )
+    rh = RotatingFileHandler(filename=logfile, maxBytes=10485760, backupCount=10)
     rh.setLevel(logging.WARNING)
     rh.setFormatter(formatter)
     logger.addHandler(rh)
@@ -66,8 +62,7 @@ def data_dir():
     '''Return path to data directory.'''
 
     xdg_data_home = os.environ.get(
-        'XDG_DATA_HOME',
-        os.path.join(os.path.expanduser('~'), '.local/share')
+        'XDG_DATA_HOME', os.path.join(os.path.expanduser('~'), '.local/share')
     )
     path = os.path.join(xdg_data_home, 'wikiwall')
 
@@ -107,10 +102,7 @@ def get_random(iterator, k=1):
                 results[s] = item
 
     if len(results) < k:
-        logger.warning(
-            'Size of iterator (%s) is less than k (%s)',
-            len(results), k,
-        )
+        logger.warning('Size of iterator (%s) is less than k (%s)', len(results), k)
 
     return results
 
@@ -128,20 +120,17 @@ def scrape_urls(src_url):
         Parsed url results in string format.
 
     '''
-    regex = r'https?:\/\/.+?\.jpg'
-
     # Exceptions raised here if connection issue arises
     r = requests.get(src_url)
     r.raise_for_status()
 
-    content = r.content
+    data = r.json().get('Paintings')
 
-    soup = BeautifulSoup(content, 'lxml')
-    img_class = soup.find('div', {'class': 'artworks-by-dictionary'})
-    img_urls = re.finditer(regex, str(img_class))
-
-    for url in img_urls:
-        yield url[0]
+    if data is not None:
+        for obj in data:
+            yield obj.get('image', '')
+    else:
+        yield ''
 
 
 def download_img(url, dest=None):
@@ -180,7 +169,7 @@ def download_img(url, dest=None):
             iterable=r.iter_content(chunk_sz),
             total=int(file_sz / chunk_sz),
             unit_scale=True,
-            unit='KB'
+            unit='KB',
         ):
             f.write(chunk)
 
@@ -244,22 +233,15 @@ def _run_appscript(script):
 
 
 @click.group(invoke_without_command=True)
-@click.option(
-    '--dest',
-    help='Download images to specified destination.'
-)
+@click.option('--dest', help='Download images to specified destination.')
 @click.option(
     '--limit',
     default=10,
     help='''
         Number of files to keep in download directory. Set to -1 for no limit. Default is 10.
-    '''
+    ''',
 )
-@click.option(
-    '--debug',
-    is_flag=True,
-    help='Show debugging messages.'
-)
+@click.option('--debug', is_flag=True, help='Show debugging messages.')
 @click.pass_context
 def cli(ctx, dest, limit, debug):
     '''Set desktop background in macOS to random WikiArt image.'''

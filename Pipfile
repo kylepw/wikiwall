@@ -15,7 +15,6 @@ sphinx = "*"
 tqdm = "*"
 click = "*"
 requests = "*"
-beautifulsoup4 = "*"
 lxml = "*"
 
 [requires]
