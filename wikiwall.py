@@ -1,11 +1,11 @@
-'''
+"""
     wikiwall.py
     ~~~~~~~~~~~
 
     Downloads a random image from Wikiart's Hi-Res page
     and sets it as the desktop background in macOS.
 
-'''
+"""
 
 import click
 import logging
@@ -24,11 +24,11 @@ logger = logging.getLogger(__name__)
 
 
 # Source of Hi-Res images
-SRC_URL = 'https://www.wikiart.org/?json=2&layout=new&param=high_resolution'
+SRC_URL = 'https://www.wikiart.org/?json=2&layout=new&param=high_resolution&layout=new&page={}'
 
 
 def config_logger(debug, path=None):
-    ''' Configure module logger.'''
+    """Configure module logger. """
 
     if path is not None:
         logfile = os.path.join(path, __name__ + '.log')
@@ -59,7 +59,7 @@ def config_logger(debug, path=None):
 
 
 def data_dir():
-    '''Return path to data directory.'''
+    """Return path to data directory. """
 
     xdg_data_home = os.environ.get(
         'XDG_DATA_HOME', os.path.join(os.path.expanduser('~'), '.local/share')
@@ -73,7 +73,7 @@ def data_dir():
 
 
 def get_random(iterator, k=1):
-    '''Get random sample of items in iterator.
+    """Get random sample of items in iterator.
 
     Args:
         iterator: any iterator you want random samples from.
@@ -90,7 +90,7 @@ def get_random(iterator, k=1):
         is `k` or number of items in `iterator` if `k` is larger than
         the total number of items.
 
-    '''
+    """
     results = []
 
     for i, item in enumerate(iterator):
@@ -108,7 +108,7 @@ def get_random(iterator, k=1):
 
 
 def scrape_urls(src_url):
-    '''Scrape jpg urls.
+    """Scrape jpg urls.
 
     Args:
         src_url: URL to scrape.
@@ -119,7 +119,7 @@ def scrape_urls(src_url):
     Yields:
         Parsed url results in string format.
 
-    '''
+    """
     # Exceptions raised here if connection issue arises
     r = requests.get(src_url)
     r.raise_for_status()
@@ -134,7 +134,7 @@ def scrape_urls(src_url):
 
 
 def download_img(url, dest=None):
-    '''Download img from url.
+    """Download img from url.
 
     Args:
         url: url of image file.
@@ -146,7 +146,7 @@ def download_img(url, dest=None):
     Returns:
         path: local path to downloaded file.
 
-    '''
+    """
     if not isinstance(url, str):
         raise TypeError(f'url must be type str, not {type(url)}')
     if dest and not isinstance(dest, str):
@@ -179,7 +179,7 @@ def download_img(url, dest=None):
 
 
 def _clean_dls(limit, path=None):
-    ''' Check that number of images saved so far is no more than `limit`.
+    """Check that number of images saved so far is no more than `limit`.
 
     Args:
         limit: maximum number of downloads allowed in download directory.
@@ -188,7 +188,7 @@ def _clean_dls(limit, path=None):
     Raises:
         ValueError: if `limit` is not an positive integer.
 
-    '''
+    """
     if not isinstance(limit, int) or limit < 0:
         raise ValueError('`limit` must be a positive integer.')
 
@@ -218,7 +218,7 @@ def _clean_dls(limit, path=None):
 
 
 def _run_appscript(script):
-    '''Execute Applescript. '''
+    """Execute Applescript. """
 
     try:
         subprocess.run(
@@ -244,7 +244,7 @@ def _run_appscript(script):
 @click.option('--debug', is_flag=True, help='Show debugging messages.')
 @click.pass_context
 def cli(ctx, dest, limit, debug):
-    '''Set desktop background in macOS to random WikiArt image.'''
+    """Set desktop background in macOS to random WikiArt image. """
 
     DATA_DIR = data_dir()
 
@@ -303,7 +303,7 @@ def cli(ctx, dest, limit, debug):
 @cli.command()
 @click.pass_context
 def show(ctx):
-    '''Show previous downloads in Finder.'''
+    """Show previous downloads in Finder. """
 
     open_script = f'''
     tell application "Finder"
