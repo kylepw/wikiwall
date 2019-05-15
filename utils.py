@@ -3,7 +3,7 @@
 utils.py
 ~~~~~~~~~
 
-Functions and values that all modules share.
+Functions and values that other modules share.
 
 """
 
