@@ -6,7 +6,7 @@ from setuptools import setup, Command
 
 # Meta-data
 NAME = 'wikiwall'
-VERSION = '0.1.0'
+VERSION = '0.2.0'
 DESCRIPTION = 'Set desktop background to random Wikiart image.'
 AUTHOR = 'Kyle Weeks'
 EMAIL = 'kylepw@gmail.com'
