@@ -19,12 +19,11 @@ import sys
 import time
 from tqdm import tqdm
 
+from db import DownloadDatabase
+from utils import DUPLICATE_TIMEOUT, SRC_URL, data_dir
+
 
 logger = logging.getLogger(__name__)
-
-
-# Source of Hi-Res images
-SRC_URL = 'https://www.wikiart.org/?json=2&layout=new&param=high_resolution&layout=new&page={}'
 
 
 def config_logger(debug, path=None):
@@ -56,20 +55,6 @@ def config_logger(debug, path=None):
     rh.setLevel(logging.WARNING)
     rh.setFormatter(formatter)
     logger.addHandler(rh)
-
-
-def data_dir():
-    """Return path to data directory. """
-
-    xdg_data_home = os.environ.get(
-        'XDG_DATA_HOME', os.path.join(os.path.expanduser('~'), '.local/share')
-    )
-    path = os.path.join(xdg_data_home, 'wikiwall')
-
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-    return path
 
 
 def get_random(iterator, k=1):
@@ -265,34 +250,53 @@ def cli(ctx, dest, limit, debug):
         return
 
     try:
-        # Retrieve random hi-res image.
-        print('Searching for image...')
-        url = get_random(scrape_urls(SRC_URL))[0]
-        saved_img = download_img(url, dest)
+        with DownloadDatabase() as db:
+            # Start at first page of json data.
+            json_page = 0
 
-        # Clean out DL directory if limit reached.
-        if limit != -1:
-            logger.info('Download limit set to %s.', limit)
-            _clean_dls(limit, path=dest)
-        else:
-            logger.info('No download limit set. Skipping cleaning.')
+            # Skip duplicates
+            print('Searching for image...')
+            url = get_random(scrape_urls(SRC_URL.format(json_page)))[0]
+            start = time.time()
+            while db.is_duplicate(url):
 
-        # Set image as desktop background.
-        setwall_script = f'''
-            tell application "System Events"
-                tell every desktop
-                    set picture to "{saved_img}"
+                logger.warning('Duplicate!')
+                url = get_random(scrape_urls(SRC_URL.format(json_page)))[0]
+
+                if time.time() - start > DUPLICATE_TIMEOUT:
+                    # Try next page of data.
+                    json_page += 1
+                    logger.info('Trying next page %s', json_page)
+                    start = time.time()
+
+            saved_img = download_img(url, dest)
+
+            # Clean out DL directory if limit reached.
+            if limit != -1:
+                logger.info('Download limit set to %s.', limit)
+                _clean_dls(limit, path=dest)
+            else:
+                logger.info('No download limit set. Skipping cleaning.')
+
+            # Set image as desktop background.
+            setwall_script = f'''
+                tell application "System Events"
+                    tell every desktop
+                        set picture to "{saved_img}"
+                    end tell
                 end tell
-            end tell
-        '''
+            '''
 
-        print('Setting background... ', end='')
-        _run_appscript(setwall_script)
+            print('Setting background... ', end='')
+            _run_appscript(setwall_script)
 
-        sys.stdout.flush()
-        time.sleep(1)
-        print('done.')
-        time.sleep(0.2)
+            # Save record of image to database.
+            db.add(url)
+
+            sys.stdout.flush()
+            time.sleep(1)
+            print('done.')
+            time.sleep(0.2)
 
     except Exception:
         logger.exception('Something went wrong.')
@@ -308,7 +312,6 @@ def show(ctx):
     open_script = f'''
     tell application "Finder"
         open POSIX file "{ctx.obj['DEST']}"
-    end tell
     '''
     _run_appscript(open_script)
 
