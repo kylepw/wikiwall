@@ -293,10 +293,10 @@ def cli(ctx, dest, limit, debug):
             # Save record of image to database.
             db.add(url)
 
-            sys.stdout.flush()
-            time.sleep(1)
-            print('done.')
-            time.sleep(0.2)
+        sys.stdout.flush()
+        time.sleep(1)
+        print('done.')
+        time.sleep(0.2)
 
     except Exception:
         logger.exception('Something went wrong.')
@@ -310,8 +310,9 @@ def show(ctx):
     """Show previous downloads in Finder. """
 
     open_script = f'''
-    tell application "Finder"
-        open POSIX file "{ctx.obj['DEST']}"
+        tell application "Finder"
+            open POSIX file "{ctx.obj['DEST']}"
+        end tell
     '''
     _run_appscript(open_script)
 
