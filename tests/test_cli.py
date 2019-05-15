@@ -1,7 +1,8 @@
 from click.testing import CliRunner
 import unittest
 import unittest.mock as mock
-from wikiwall import cli, logger
+import wikiwall
+from wikiwall import cli
 
 
 class CliTest(unittest.TestCase):
@@ -9,7 +10,7 @@ class CliTest(unittest.TestCase):
     def setUp(self):
         self.runner = CliRunner()
 
-        self.patcher_info = mock.patch.object(logger, 'info')
+        self.patcher_info = mock.patch.object(wikiwall.logger, 'info')
         self.mock_info = self.patcher_info.start()
 
         # Mock out functions called from cli().
@@ -31,6 +32,30 @@ class CliTest(unittest.TestCase):
         self.patcher_scrape_urls = mock.patch('wikiwall.scrape_urls')
         self.mock_scrape_urls = self.patcher_scrape_urls.start()
 
+        self.patcher_datadir = mock.patch('wikiwall.data_dir', return_value='/tmp')
+        self.mock_datadir = self.patcher_datadir.start()
+
+        self.patcher_time = mock.patch('wikiwall.time')
+        self.mock_time = self.patcher_time.start()
+
+        self.patcher_sys = mock.patch('wikiwall.sys')
+        self.mock_sys = self.patcher_sys.start()
+
+        self.patcher_db = mock.patch(
+            'wikiwall.DownloadDatabase',
+            return_value=mock.Mock(
+                __enter__=mock.Mock(
+                    return_value=mock.Mock(
+                        is_duplicate=mock.Mock(return_value=False),
+                        add=mock.Mock()
+                    )
+                ),
+                __exit__=mock.Mock(return_value=None),
+            )
+        )
+        self.mock_db = self.patcher_db.start()
+
+
     def tearDown(self):
         self.patcher_info.stop()
         self.patcher_config_logger.stop()
@@ -39,6 +64,10 @@ class CliTest(unittest.TestCase):
         self.patcher_download_img.stop()
         self.patcher_get_random.stop()
         self.patcher_scrape_urls.stop()
+        self.patcher_datadir.stop()
+        self.patcher_time.stop()
+        self.patcher_db.stop()
+        self.patcher_sys.stop()
 
     def test_debug_on_message(self):
         result = self.runner.invoke(cli, ['--debug'])
@@ -46,28 +75,24 @@ class CliTest(unittest.TestCase):
 
     def test_dest_with_value_given(self):
         dest = '/tmp'
-        self.runner.invoke(cli, [f'--dest={dest}'])
+        self.runner.invoke(cli, ['--debug', f'--dest={dest}'])
 
         self.mock_info.assert_any_call('Destination set to %s', dest)
 
     def test_no_limit(self):
         self.runner.invoke(cli, ['--limit', '-1'])
 
-        self.mock_info.assert_any_call(
-            'No download limit set. Skipping cleaning.'
-        )
+        self.mock_info.assert_any_call('No download limit set. Skipping cleaning.')
 
     def test_limit_set_to_12(self):
         limit = 12
-        self.runner.invoke(cli, [f'--limit={limit}'])
+
+        self.runner.invoke(cli, ['--limit', f'{limit}'])
 
         self.mock_info.assert_any_call('Download limit set to %s.', limit)
 
     def test_message_on_random_exception_in_cli_body(self):
-        with mock.patch(
-            'wikiwall.get_random',
-            side_effect=ValueError
-        ):
+        with mock.patch('wikiwall.get_random', side_effect=ValueError):
             result = self.runner.invoke(cli, ['--limit', '2'])
         self.assertIn('Something went wrong. Check the logs.', result.output)
 
