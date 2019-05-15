@@ -1,12 +1,12 @@
 """
-    wikiwall.py
-    ~~~~~~~~~~~
 
-    Downloads a random image from Wikiart's Hi-Res page
-    and sets it as the desktop background in macOS.
+wikiwall.py
+~~~~~~~~~~~
+
+Downloads a random image from Wikiart's Hi-Res page and
+sets it as the desktop background in macOS.
 
 """
-
 import click
 import logging
 from logging.handlers import RotatingFileHandler

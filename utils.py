@@ -1,9 +1,9 @@
 """
 
-    config.py
-    ~~~~~~~~~
+utils.py
+~~~~~~~~~
 
-    Functions and values that all modules share.
+Functions and values that all modules share.
 
 """
 
