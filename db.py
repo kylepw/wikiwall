@@ -33,9 +33,7 @@ class DownloadDatabase:
     """
 
     def __init__(
-        self,
-        db_filename=os.path.join(data_dir(), 'wikiwall.db'),
-        tablename='downloads',
+        self, db_filename=os.path.join(data_dir(), 'wikiwall.db'), tablename='downloads'
     ):
         self.db_filename = db_filename
         self.tablename = tablename
@@ -92,10 +90,7 @@ class DownloadDatabase:
         )
         try:
             with self.conn:
-                self.conn.execute(
-                    record_sql,
-                    (url,),
-                )
+                self.conn.execute(record_sql, (url,))
         except sqlite3.IntegrityError:
             logger.exception('Already tweeted %s!', url)
 

@@ -18,7 +18,6 @@ from wikiwall import (
 
 
 class ConfigLoggerTest(unittest.TestCase):
-
     def setUp(self):
         self.patcher_logging = mock.patch('wikiwall.logging')
         self.mock_logging = self.patcher_logging.start()
@@ -27,9 +26,7 @@ class ConfigLoggerTest(unittest.TestCase):
         self.mock_rotate = self.patcher_rotate.start()
 
         self.patcher_getcwd = mock.patch(
-            'wikiwall.os.getcwd',
-            return_value='/Users/mock',
-            autospec=True
+            'wikiwall.os.getcwd', return_value='/Users/mock', autospec=True
         )
         self.mock_getcwd = self.patcher_getcwd.start()
 
@@ -58,18 +55,12 @@ class ConfigLoggerTest(unittest.TestCase):
 
 
 class DataDirTest(unittest.TestCase):
-
     def setUp(self):
-        self.patcher_makedirs = mock.patch(
-            'wikiwall.os.makedirs',
-            autospec=True,
-        )
+        self.patcher_makedirs = mock.patch('wikiwall.os.makedirs', autospec=True)
         self.mock_makedirs = self.patcher_makedirs.start()
 
         self.patcher_expanduser = mock.patch(
-            'wikiwall.os.path.expanduser',
-            return_value='/Users/mock',
-            autospec=True
+            'wikiwall.os.path.expanduser', return_value='/Users/mock', autospec=True
         )
         self.mock_expanduser = self.patcher_expanduser.start()
 
@@ -85,15 +76,11 @@ class DataDirTest(unittest.TestCase):
     def test_xdg_data_home_env_variables_doesnt_exist(self):
         self.assertEqual(
             data_dir(),
-            os.path.join(
-                self.mock_expanduser.return_value,
-                '.local/share/wikiwall'
-            )
+            os.path.join(self.mock_expanduser.return_value, '.local/share/wikiwall'),
         )
 
 
 class GetRandomTest(unittest.TestCase):
-
     def test_blank_parameter(self):
         with self.assertRaises(TypeError):
             get_random()
@@ -117,13 +104,11 @@ class GetRandomTest(unittest.TestCase):
         with mock.patch('wikiwall.logger') as mock_logger:
             get_random(values, k)
         mock_logger.warning.assert_called_with(
-            'Size of iterator (%s) is less than k (%s)',
-            len(values), k
+            'Size of iterator (%s) is less than k (%s)', len(values), k
         )
 
 
 class ScrapeUrlsTest(unittest.TestCase):
-
     def setUp(self):
         self.patcher_get = mock.patch('wikiwall.requests.get', autospec=True)
         self.mock_get = self.patcher_get.start()
@@ -136,7 +121,7 @@ class ScrapeUrlsTest(unittest.TestCase):
         status_code=200,
         headers={'Content-Type': 'application/json; charset=utf-8'},
         json={},
-        raise_for_status=None
+        raise_for_status=None,
     ):
         ''' Returns a mock requests Response object.'''
         mock_resp = mock.Mock(spec=requests.models.Response)
@@ -146,9 +131,7 @@ class ScrapeUrlsTest(unittest.TestCase):
 
         # mock raise_for_status call w/optional error
         if raise_for_status:
-            mock_resp.raise_for_status = mock.Mock(
-                side_effect=raise_for_status
-            )
+            mock_resp.raise_for_status = mock.Mock(side_effect=raise_for_status)
 
         return mock_resp
 
@@ -173,7 +156,7 @@ class ScrapeUrlsTest(unittest.TestCase):
         src_data = {
             'Paintings': [
                 {'id': '1', 'image': 'image1.jpg'},
-                {'id': '2', 'image': 'image2.jpg'}
+                {'id': '2', 'image': 'image2.jpg'},
             ]
         }
 
@@ -189,7 +172,7 @@ class ScrapeUrlsTest(unittest.TestCase):
         src_data = {
             'Pine': [
                 {'id': '1', 'gerbils': 'image1.jpg'},
-                {'id': '2', 'gerbils': 'image2.jpg'}
+                {'id': '2', 'gerbils': 'image2.jpg'},
             ]
         }
 
@@ -204,7 +187,7 @@ class ScrapeUrlsTest(unittest.TestCase):
         src_data = {
             'Paintings': [
                 {'id': '1', 'gerbils': 'image1.jpg'},
-                {'id': '2', 'gerbils': 'image2.jpg'}
+                {'id': '2', 'gerbils': 'image2.jpg'},
             ]
         }
 
@@ -217,7 +200,6 @@ class ScrapeUrlsTest(unittest.TestCase):
 
 
 class DownloadImgTest(unittest.TestCase):
-
     def setUp(self):
         self.patcher_get = mock.patch('wikiwall.requests.get', autospec=True)
         self.mock_get = self.patcher_get.start()
@@ -227,10 +209,7 @@ class DownloadImgTest(unittest.TestCase):
         )
         self.mock_getcwd = self.patcher_getcwd.start()
 
-        self.patcher_makedirs = mock.patch(
-            'wikiwall.os.makedirs',
-            autospec=True,
-        )
+        self.patcher_makedirs = mock.patch('wikiwall.os.makedirs', autospec=True)
         self.mock_makedirs = self.patcher_makedirs.start()
 
         # Suppress print and tqdm output
@@ -334,7 +313,6 @@ class DownloadImgTest(unittest.TestCase):
 
 
 class CleanDlsTest(unittest.TestCase):
-
     def create_dls(self, path, fnum):
         '''Create `fnum` JPEG files in `path`.'''
 
@@ -376,8 +354,7 @@ class CleanDlsTest(unittest.TestCase):
 
     def test_getcwd_called_when_no_path_given(self):
         with mock.patch(
-            'wikiwall.os.getcwd',
-            return_value=self.tempdir.name
+            'wikiwall.os.getcwd', return_value=self.tempdir.name
         ) as mock_getcwd:
             _clean_dls(limit=4, path=None)
         mock_getcwd.assert_called()
@@ -414,7 +391,7 @@ class CleanDlsTest(unittest.TestCase):
         jpegs = self.get_jpegs(path=self.tempdir.name)
 
         # Grab oldest 3 files and newest 2.
-        old = jpegs[:fnum - limit]
+        old = jpegs[: fnum - limit]
         new = jpegs[-limit:]
 
         _clean_dls(limit=limit, path=self.tempdir.name)
@@ -429,14 +406,12 @@ class CleanDlsTest(unittest.TestCase):
 
 
 class RunAppScriptTest(unittest.TestCase):
-
     def setUp(self):
         self.patcher_run = mock.patch(
             'wikiwall.subprocess.run',
             side_effect=wikiwall.subprocess.CalledProcessError(
-                returncode=1,
-                cmd='gah',
-                stderr=b'')
+                returncode=1, cmd='gah', stderr=b''
+            ),
         )
         self.mock_run = self.patcher_run.start()
 

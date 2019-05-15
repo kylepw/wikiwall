@@ -6,7 +6,6 @@ from wikiwall import cli
 
 
 class CliTest(unittest.TestCase):
-
     def setUp(self):
         self.runner = CliRunner()
 
@@ -46,15 +45,13 @@ class CliTest(unittest.TestCase):
             return_value=mock.Mock(
                 __enter__=mock.Mock(
                     return_value=mock.Mock(
-                        is_duplicate=mock.Mock(return_value=False),
-                        add=mock.Mock()
+                        is_duplicate=mock.Mock(return_value=False), add=mock.Mock()
                     )
                 ),
                 __exit__=mock.Mock(return_value=None),
-            )
+            ),
         )
         self.mock_db = self.patcher_db.start()
-
 
     def tearDown(self):
         self.patcher_info.stop()
@@ -98,7 +95,6 @@ class CliTest(unittest.TestCase):
 
 
 class ShowSubcommandTest(unittest.TestCase):
-
     def setUp(self):
         self.runner = CliRunner()
 
