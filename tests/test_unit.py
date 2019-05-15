@@ -195,7 +195,6 @@ class ScrapeUrlsTest(unittest.TestCase):
         self.mock_get.return_value = mock_resp
 
         urls = scrape_urls(src)
-        print(urls)
         self.assertEqual([*urls], ['', ''])
 
 
