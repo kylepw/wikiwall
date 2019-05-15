@@ -67,7 +67,7 @@ class DownloadDatabase:
         query = '''
             CREATE TABLE IF NOT EXISTS {} (
                 id integer PRIMARY KEY,
-                url text NOT NULL UNIQUE,
+                url text NOT NULL UNIQUE)
             '''.format(
             self.tablename
         )
@@ -94,7 +94,7 @@ class DownloadDatabase:
             with self.conn:
                 self.conn.execute(
                     record_sql,
-                    (url),
+                    (url,),
                 )
         except sqlite3.IntegrityError:
             logger.exception('Already tweeted %s!', url)
