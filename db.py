@@ -8,9 +8,7 @@ Sqlite3 database wrapper for download history.
 The database stores information on downloaded images to prevent
 downloading images more than once.
 
-
 """
-
 import logging
 import os.path
 import sqlite3
