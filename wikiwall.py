@@ -252,7 +252,7 @@ def cli(ctx, dest, limit, debug):
     try:
         with DownloadDatabase() as db:
             # Start at first page of json data.
-            json_page = 0
+            json_page = 1
 
             # Skip duplicates
             print('Searching for image...')
